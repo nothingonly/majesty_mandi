@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function Home() {
   const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
@@ -20,6 +21,24 @@ export default function Home() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+
+  const springConfig = { damping: 25, stiffness: 250, mass: 0.5 };
+  const cursorRingX = useSpring(cursorX, springConfig);
+  const cursorRingY = useSpring(cursorY, springConfig);
+
+  useEffect(() => {
+    const moveCursor = (e: MouseEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+    window.addEventListener('mousemove', moveCursor);
+    return () => {
+      window.removeEventListener('mousemove', moveCursor);
+    };
+  }, [cursorX, cursorY]);
 
   const menuItems = [
     { name: "Mutton Juicy Mandi", img: "/mutton juicy mandi.png", price: 650 },
@@ -73,7 +92,17 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0B0B0C] text-white font-sans overflow-x-hidden relative">
+    <main className="min-h-screen bg-[#0B0B0C] text-white font-sans overflow-x-hidden relative cursor-none">
+
+      {/* ═══════════════ CUSTOM AURA CURSOR ═══════════════ */}
+      <motion.div
+        className="fixed top-0 left-0 w-3 h-3 bg-[#DFB15B] rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 hidden md:block"
+        style={{ x: cursorX, y: cursorY }}
+      />
+      <motion.div
+        className="fixed top-0 left-0 w-8 h-8 border border-[#DFB15B] rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 hidden md:block"
+        style={{ x: cursorRingX, y: cursorRingY }}
+      />
 
       {/* ═══════════════ CINEMATIC PRELOADER (THE AURA) ═══════════════ */}
       {isLoading && (
@@ -139,11 +168,19 @@ export default function Home() {
       {/* ═══════════════ HERO SECTION ═══════════════ */}
       <section className="w-full py-20 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B0B0C] pointer-events-none z-10" />
-        <h2 className="text-4xl md:text-6xl font-serif mb-4 text-white z-20">...TASTE THE LEGACY...</h2>
-        <p className="text-neutral-400 mb-12 max-w-lg z-20">Experience the ultimate authentic Arabian dining right here in Hanamkonda.</p>
-        <div className="w-full max-w-2xl animate-[bounce_4s_ease-in-out_infinite] z-20">
-          <img src={heroImages[currentHeroIdx]} alt="Signature Mandi" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(223,177,91,0.3)] transition-opacity duration-700 ease-in-out" />
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true, margin: "-100px" }} 
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center z-20 w-full"
+        >
+          <h2 className="text-4xl md:text-6xl font-serif mb-4 text-white">...TASTE THE LEGACY...</h2>
+          <p className="text-neutral-400 mb-12 max-w-lg">Experience the ultimate authentic Arabian dining right here in Hanamkonda.</p>
+          <div className="w-full max-w-2xl animate-[bounce_4s_ease-in-out_infinite]">
+            <img src={heroImages[currentHeroIdx]} alt="Signature Mandi" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(223,177,91,0.3)] transition-opacity duration-700 ease-in-out" />
+          </div>
+        </motion.div>
       </section>
 
       {/* ═══════════════ THE MAJESTY EXPERIENCE (NARRATIVE ABOUT) ═══════════════ */}
@@ -175,7 +212,13 @@ export default function Home() {
       {/* ═══════════════ MENU GRID ═══════════════ */}
       <section className="w-full max-w-7xl mx-auto py-16 px-4">
         <h3 className="text-3xl font-serif text-[#DFB15B] text-center mb-12 border-b border-neutral-800 pb-4">The Royal Selection</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true, margin: "-100px" }} 
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           {menuItems.map((item, idx) => (
             <div key={idx} className="bg-[#121212] border border-neutral-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl hover:border-[#DFB15B] transition-colors duration-300 group">
               <div className="w-48 h-48 mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
@@ -188,22 +231,52 @@ export default function Home() {
               </button>
             </div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* ═══════════════ GALLERY GRID ═══════════════ */}
       <section className="w-full bg-[#121212] py-16 px-4 border-t border-neutral-800">
         <div className="max-w-7xl mx-auto">
           <h3 className="text-3xl font-serif text-[#DFB15B] text-center mb-12">The Royal Ambiance</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true, margin: "-100px" }} 
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
             {galleryImages.map((img, idx) => (
               <div key={idx} className="w-full h-64 rounded-xl overflow-hidden border border-neutral-800">
                 <img src={img} alt={`Ambiance ${idx}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* ═══════════════ INFINITE MARQUEE BAND ═══════════════ */}
+      <div className="w-full overflow-hidden bg-[#DFB15B]/10 border-y border-[#DFB15B]/30 py-6 flex whitespace-nowrap">
+        <motion.div 
+          className="flex whitespace-nowrap text-[#DFB15B] font-serif text-lg md:text-xl tracking-[0.2em] font-medium select-none"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, ease: "linear", duration: 30 }}
+        >
+          {/* Half 1 */}
+          <div className="flex gap-16 pr-16 shrink-0">
+            <span>✦ TASTE THE LEGACY</span>
+            <span>✦ AUTHENTIC ARABIAN DINING</span>
+            <span>✦ THE ROYAL EXPERIENCE</span>
+            <span>✦ MAJESTY MANDI HOUSE</span>
+          </div>
+          {/* Half 2 */}
+          <div className="flex gap-16 pr-16 shrink-0">
+            <span>✦ TASTE THE LEGACY</span>
+            <span>✦ AUTHENTIC ARABIAN DINING</span>
+            <span>✦ THE ROYAL EXPERIENCE</span>
+            <span>✦ MAJESTY MANDI HOUSE</span>
+          </div>
+        </motion.div>
+      </div>
 
       {/* ═══════════════ FOOTER ═══════════════ */}
       <footer className="w-full bg-[#0B0B0C] border-t border-[#DFB15B] py-16 px-4">
