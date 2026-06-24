@@ -436,11 +436,11 @@ export default function Home() {
             className="grid grid-cols-2 md:grid-cols-4 gap-4"
           >
             {galleryImages.map((img, idx) => (
-              <div key={idx} className="w-full h-64 rounded-xl overflow-hidden border border-neutral-800">
+              <div key={idx} className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden border border-neutral-800 shadow-lg cursor-none group">
                 <motion.img
                   src={img}
                   alt={`Ambiance ${idx}`}
-                  className="w-full h-[130%] object-cover"
+                  className="w-full h-[130%] object-cover transition-transform duration-[800ms] ease-out group-hover:scale-110"
                   style={{ y: parallaxY }}
                 />
               </div>
