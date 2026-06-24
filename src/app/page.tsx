@@ -1,18 +1,108 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function Home() {
   const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Canvas Preloader States and Refs
+  const TOTAL_FRAMES = 240;
+  const FRAME_PREFIX = "ezgif-frame-";
+  const FRAME_PADDING = 3;
+  const FRAME_EXTENSION = ".jpg";
+  const FRAME_START_INDEX = 1;
+
+  const [isPreloaderMounted, setIsPreloaderMounted] = useState(true);
+  const [isPreloaderFading, setIsPreloaderFading] = useState(false);
+  
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const animationFrameId = useRef<number | null>(null);
 
   const heroImages = ["/chicken juicy mandi.png", "/mutton juicy mandi.png", "/fish platter mandi.png"];
   const [currentHeroIdx, setCurrentHeroIdx] = useState(0);
 
+  // Preload and play canvas animation
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2500);
-    return () => clearTimeout(timer);
+    let loadedCount = 0;
+    const images: HTMLImageElement[] = [];
+
+    // Preload all frames
+    for (let i = FRAME_START_INDEX; i < FRAME_START_INDEX + TOTAL_FRAMES; i++) {
+      const img = new Image();
+      const frameNum = String(i).padStart(FRAME_PADDING, '0');
+      img.src = `/logo-frames/${FRAME_PREFIX}${frameNum}${FRAME_EXTENSION}`;
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount === TOTAL_FRAMES) {
+          startAnimation();
+        }
+      };
+      img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === TOTAL_FRAMES) {
+          startAnimation();
+        }
+      };
+      images.push(img);
+    }
+    imagesRef.current = images;
+
+    let currentFrame = 0;
+    let lastTime = 0;
+    const fpsInterval = 1000 / 24; // 24 FPS
+
+    function startAnimation() {
+      // Draw first frame immediately
+      drawFrame(0);
+      requestAnimationFrame(animate);
+    }
+
+    function drawFrame(frameIdx: number) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const img = imagesRef.current[frameIdx];
+          if (img && img.complete) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          }
+        }
+      }
+    }
+
+    function animate(timestamp: number) {
+      if (!lastTime) lastTime = timestamp;
+      const elapsed = timestamp - lastTime;
+
+      if (elapsed > fpsInterval) {
+        lastTime = timestamp - (elapsed % fpsInterval);
+
+        drawFrame(currentFrame);
+        currentFrame++;
+
+        if (currentFrame >= TOTAL_FRAMES) {
+          // Reached final frame. Pause for 1 second, then fade out.
+          setTimeout(() => {
+            setIsPreloaderFading(true);
+            setTimeout(() => {
+              setIsPreloaderMounted(false);
+            }, 1000); // 1s fade-out duration
+          }, 1000); // 1s pause at the end
+          return; // Stop animation loop
+        }
+      }
+
+      animationFrameId.current = requestAnimationFrame(animate);
+    }
+
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -105,15 +195,22 @@ export default function Home() {
       />
 
       {/* ═══════════════ CINEMATIC PRELOADER (THE AURA) ═══════════════ */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-[#0B0B0C] z-[999] flex items-center justify-center transition-opacity duration-700">
+      {isPreloaderMounted && (
+        <div 
+          className="fixed inset-0 bg-[#0B0B0C] z-[9999] flex flex-col items-center justify-center transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: isPreloaderFading ? 0 : 1, pointerEvents: isPreloaderFading ? 'none' : 'auto' }}
+        >
           <div className="flex flex-col items-center gap-6">
-            <img
-              src="/logo.jpg"
-              alt="Majesty Mandi House Logo"
-              className="w-32 h-32 rounded-full object-cover shadow-[0_0_50px_10px_rgba(223,177,91,0.6)] animate-pulse border-2 border-[#DFB15B]"
+            <canvas
+              ref={canvasRef}
+              width={500}
+              height={500}
+              className="w-64 h-64 md:w-[400px] md:h-[400px]"
+              style={{ mixBlendMode: 'screen' }}
             />
-            <span className="text-[#DFB15B] font-serif text-xl tracking-[0.3em] uppercase animate-pulse">Majesty</span>
+            <span className="text-[#DFB15B] font-serif text-xl tracking-[0.3em] uppercase animate-pulse">
+              Majesty
+            </span>
           </div>
         </div>
       )}
