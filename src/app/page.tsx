@@ -101,6 +101,7 @@ function MagneticButton({ onClick, children, className }: { onClick: () => void;
 export default function Home() {
   const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Checkout form state
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
@@ -229,23 +230,44 @@ export default function Home() {
     };
   }, [cursorX, cursorY]);
 
-  const categories = ["All", "Chicken", "Mutton", "Seafood"];
+  const categories = ["All", "Mandi", "Starters", "Main Course", "Breads", "Desserts"];
   const [activeCategory, setActiveCategory] = useState("All");
 
   const menuItems = [
-    { name: "Mutton Juicy Mandi",       img: "/mutton juicy mandi.png",        price: 650, category: "Mutton"   },
-    { name: "Chicken Faham Mandi",       img: "/chicken faham Mandi.png",       price: 450, category: "Chicken"  },
-    { name: "Fish Platter Mandi",        img: "/fish platter mandi.png",        price: 750, category: "Seafood"  },
-    { name: "Chicken Madfoon",           img: "/chicken madfoon Mandi.png",     price: 480, category: "Chicken"  },
-    { name: "Chicken Majestic",          img: "/chicken majestic.png",          price: 350, category: "Chicken"  },
-    { name: "Chicken Juicy Mandi",       img: "/chicken juicy mandi.png",       price: 400, category: "Chicken"  },
-    { name: "Chicken Broasted Mandi",    img: "/chicken broasted mandi.png",    price: 420, category: "Chicken"  },
-    { name: "Chicken Crispy Mandi",      img: "/chicken crispy mandi.png",      price: 430, category: "Chicken"  },
-    { name: "Chicken Fry Mandi",         img: "/chicken fry mandi.png",         price: 390, category: "Chicken"  },
-    { name: "Chicken Lollipop Mandi",    img: "/chicken lollipop mandi.png",    price: 440, category: "Chicken"  },
-    { name: "Chilli Chicken",            img: "/chilli chicken.png",            price: 320, category: "Chicken"  },
-    { name: "Fish Fry Mandi",            img: "/fish fry mandi.png",            price: 550, category: "Seafood"  },
-    { name: "Mutton Fry Mandi",          img: "/mutton fry mandi.png",          price: 700, category: "Mutton"   },
+    // ── Mandi ──
+    { name: "Mutton Juicy Mandi",       img: "/mutton juicy mandi.png",        price: 650, category: "Mandi"       },
+    { name: "Chicken Faham Mandi",       img: "/chicken faham Mandi.png",       price: 450, category: "Mandi"       },
+    { name: "Fish Platter Mandi",        img: "/fish platter mandi.png",        price: 750, category: "Mandi"       },
+    { name: "Chicken Madfoon",           img: "/chicken madfoon Mandi.png",     price: 480, category: "Mandi"       },
+    { name: "Chicken Majestic",          img: "/chicken majestic.png",          price: 350, category: "Mandi"       },
+    { name: "Chicken Juicy Mandi",       img: "/chicken juicy mandi.png",       price: 400, category: "Mandi"       },
+    { name: "Chicken Broasted Mandi",    img: "/chicken broasted mandi.png",    price: 420, category: "Mandi"       },
+    { name: "Chicken Crispy Mandi",      img: "/chicken crispy mandi.png",      price: 430, category: "Mandi"       },
+    { name: "Chicken Fry Mandi",         img: "/chicken fry mandi.png",         price: 390, category: "Mandi"       },
+    { name: "Chicken Lollipop Mandi",    img: "/chicken lollipop mandi.png",    price: 440, category: "Mandi"       },
+    { name: "Chilli Chicken",            img: "/chilli chicken.png",            price: 320, category: "Mandi"       },
+    { name: "Fish Fry Mandi",            img: "/fish fry mandi.png",            price: 550, category: "Mandi"       },
+    { name: "Mutton Fry Mandi",          img: "/mutton fry mandi.png",          price: 700, category: "Mandi"       },
+    // ── Starters ──
+    { name: "Chicken 65",               img: "https://images.unsplash.com/photo-1610057099431-d73a1c9d2f2f?auto=format&fit=crop&w=500&q=80", price: 280, category: "Starters"    },
+    { name: "Paneer Tikka",             img: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d6?auto=format&fit=crop&w=500&q=80", price: 260, category: "Starters"    },
+    { name: "Seekh Kebab",              img: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=500&q=80", price: 320, category: "Starters"    },
+    { name: "Hariyali Tikka",           img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=500&q=80", price: 300, category: "Starters"    },
+    { name: "Fish Tikka",               img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80", price: 360, category: "Starters"    },
+    // ── Main Course ──
+    { name: "Butter Chicken",           img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=500&q=80", price: 380, category: "Main Course"  },
+    { name: "Mutton Rogan Josh",        img: "https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=500&q=80", price: 480, category: "Main Course"  },
+    { name: "Dal Makhani",              img: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=500&q=80", price: 220, category: "Main Course"  },
+    { name: "Prawn Masala",             img: "https://images.unsplash.com/photo-1590167918070-87989c2b7b7b?auto=format&fit=crop&w=500&q=80", price: 520, category: "Main Course"  },
+    { name: "Kadai Paneer",             img: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=500&q=80", price: 280, category: "Main Course"  },
+    // ── Breads ──
+    { name: "Butter Naan",              img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=500&q=80", price:  60, category: "Breads"       },
+    { name: "Garlic Naan",              img: "https://images.unsplash.com/photo-1591778751042-e9be44c15f31?auto=format&fit=crop&w=500&q=80", price:  80, category: "Breads"       },
+    { name: "Laccha Paratha",           img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80", price:  70, category: "Breads"       },
+    // ── Desserts ──
+    { name: "Qubani Ka Meetha",         img: "https://images.unsplash.com/photo-1541783245831-57d6fb0926d3?auto=format&fit=crop&w=500&q=80", price: 150, category: "Desserts"     },
+    { name: "Double Ka Meetha",         img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=500&q=80", price: 130, category: "Desserts"     },
+    { name: "Kulfi Falooda",            img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=500&q=80", price: 120, category: "Desserts"     },
   ];
 
   const galleryImages = [
@@ -486,14 +508,65 @@ export default function Home() {
       </div>
 
       {/* ═══════════════ HEADER ═══════════════ */}
-      <header className="w-full px-3 sm:px-4 md:px-8 py-3 flex justify-between items-center gap-2 border-b border-neutral-800 bg-[#0B0B0C]/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-          <img src="/logo.jpg" alt="Logo" className="h-9 w-9 sm:h-12 sm:w-auto object-contain rounded-full border-2 border-[#DFB15B] shrink-0" />
-          <h1 className="text-base sm:text-xl md:text-2xl font-serif font-bold text-[#DFB15B] tracking-widest uppercase truncate">Majesty</h1>
+      {/* Mobile nav overlay */}
+      <AnimatePresence>
+        {isMobileNavOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 bg-[#0B0B0C]/95 backdrop-blur-md z-[200] flex flex-col items-center justify-center gap-10 lg:hidden"
+          >
+            <button
+              onClick={() => setIsMobileNavOpen(false)}
+              className="absolute top-4 right-4 text-[#DFB15B] text-3xl font-bold p-2"
+            >✕</button>
+            {[['Home', '#top'], ['Our Menu', '#menu'], ['Royal Ambiance', '#ambiance'], ['Contact', '#contact']].map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                onClick={() => setIsMobileNavOpen(false)}
+                className="text-3xl font-serif text-white hover:text-[#DFB15B] transition-colors tracking-widest"
+              >{label}</a>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <header id="top" className="w-full px-3 sm:px-4 md:px-8 py-3 flex justify-between items-center gap-2 border-b border-neutral-800 bg-[#0B0B0C]/90 backdrop-blur-md sticky top-0 z-40">
+        {/* Logo */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <img src="/logo.jpg" alt="Logo" className="h-9 w-9 sm:h-11 sm:w-auto object-contain rounded-full border-2 border-[#DFB15B] shrink-0" />
+          <h1 className="text-base sm:text-lg md:text-2xl font-serif font-bold text-[#DFB15B] tracking-widest uppercase truncate">Majesty</h1>
         </div>
-        <button onClick={() => setIsCartOpen(true)} className="shrink-0 bg-neutral-800 px-3 sm:px-6 py-2 rounded-lg text-[#DFB15B] font-bold text-sm sm:text-base border border-neutral-700 hover:border-[#DFB15B] transition-all flex items-center gap-1 sm:gap-2 shadow-lg">
-          CART <span className="bg-[#DFB15B] text-black px-2 py-0.5 rounded-full text-xs">{cart.reduce((sum, item) => sum + item.qty, 0)}</span>
-        </button>
+
+        {/* Desktop nav links */}
+        <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-neutral-400">
+          {[['Home', '#top'], ['Our Menu', '#menu'], ['Royal Ambiance', '#ambiance'], ['Contact', '#contact']].map(([label, href]) => (
+            <a key={label} href={href} className="hover:text-[#DFB15B] transition-colors tracking-wide">{label}</a>
+          ))}
+        </nav>
+
+        {/* Right side: cart + hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="bg-neutral-800 px-3 sm:px-5 py-2 rounded-lg text-[#DFB15B] font-bold text-sm border border-neutral-700 hover:border-[#DFB15B] transition-all flex items-center gap-1 sm:gap-2 shadow-lg"
+          >
+            CART <span className="bg-[#DFB15B] text-black px-2 py-0.5 rounded-full text-xs">{cart.reduce((sum, item) => sum + item.qty, 0)}</span>
+          </button>
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setIsMobileNavOpen(true)}
+            className="lg:hidden flex flex-col gap-1.5 p-2 group"
+            aria-label="Open menu"
+          >
+            <span className="block w-6 h-0.5 bg-[#DFB15B] rounded transition-all" />
+            <span className="block w-4 h-0.5 bg-[#DFB15B] rounded transition-all group-hover:w-6" />
+            <span className="block w-6 h-0.5 bg-[#DFB15B] rounded transition-all" />
+          </button>
+        </div>
       </header>
 
       {/* ═══════════════ SCROLL-BOUND CANVAS SECTION ═══════════════ */}
@@ -551,7 +624,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ MENU GRID ═══════════════ */}
-      <section className="w-full max-w-7xl mx-auto py-12 md:py-16 px-4 sm:px-6 md:px-12">
+      <section id="menu" className="w-full max-w-7xl mx-auto py-12 md:py-16 px-4 sm:px-6 md:px-12">
         <h3 className="text-2xl sm:text-3xl font-serif text-[#DFB15B] text-center mb-6 sm:mb-8 border-b border-neutral-800 pb-4">The Royal Selection</h3>
 
         {/* ── Category Filter Bar ── */}
@@ -621,8 +694,42 @@ export default function Home() {
         </motion.div>
       </section>
 
+      {/* ═══════════════ PHYSICAL MENU CTA ═══════════════ */}
+      <section className="w-full py-12 md:py-16 px-4 sm:px-6 md:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="max-w-4xl mx-auto relative rounded-3xl overflow-hidden border border-[#DFB15B]/30 bg-gradient-to-br from-[#1a1506] via-[#121212] to-[#0B0B0C] p-8 sm:p-12 text-center shadow-[0_0_60px_rgba(223,177,91,0.08)]"
+        >
+          {/* decorative corner accents */}
+          <span className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#DFB15B]/40 rounded-tl-3xl" />
+          <span className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#DFB15B]/40 rounded-tr-3xl" />
+          <span className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-[#DFB15B]/40 rounded-bl-3xl" />
+          <span className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#DFB15B]/40 rounded-br-3xl" />
+
+          <p className="text-[#DFB15B]/60 text-xs sm:text-sm tracking-[0.4em] uppercase font-bold mb-4">Complete Dining Experience</p>
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif text-white mb-4 leading-snug">
+            Looking for our full menu?
+          </h3>
+          <p className="text-neutral-400 text-sm sm:text-base mb-8 max-w-xl mx-auto">
+            Our physical menu features the complete selection of our Royal Mandi specialties, drinks, and seasonal offerings.
+          </p>
+          <a
+            href="/menu.jpg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-8 py-3 rounded-full border-2 border-[#DFB15B] text-[#DFB15B] font-bold text-sm sm:text-base hover:bg-[#DFB15B] hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(223,177,91,0.2)] hover:shadow-[0_0_30px_rgba(223,177,91,0.4)]"
+          >
+            <span>View Physical Menu</span>
+            <span className="text-lg">↗</span>
+          </a>
+        </motion.div>
+      </section>
+
       {/* ═══════════════ GALLERY GRID ═══════════════ */}
-      <section ref={ambianceRef} className="w-full bg-[#121212] py-12 md:py-16 px-4 sm:px-6 md:px-12 border-t border-neutral-800">
+      <section id="ambiance" ref={ambianceRef} className="w-full bg-[#121212] py-12 md:py-16 px-4 sm:px-6 md:px-12 border-t border-neutral-800">
         <div className="max-w-7xl mx-auto">
           <h3 className="text-2xl sm:text-3xl font-serif text-[#DFB15B] text-center mb-8 sm:mb-12">The Royal Ambiance</h3>
           <motion.div 
