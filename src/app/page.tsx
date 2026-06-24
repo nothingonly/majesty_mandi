@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
 
 
 // ── 3D TILT CARD COMPONENT ────────────────────────────────────────────────────
@@ -229,20 +229,23 @@ export default function Home() {
     };
   }, [cursorX, cursorY]);
 
+  const categories = ["All", "Chicken", "Mutton", "Seafood"];
+  const [activeCategory, setActiveCategory] = useState("All");
+
   const menuItems = [
-    { name: "Mutton Juicy Mandi", img: "/mutton juicy mandi.png", price: 650 },
-    { name: "Chicken Faham Mandi", img: "/chicken faham Mandi.png", price: 450 },
-    { name: "Fish Platter Mandi", img: "/fish platter mandi.png", price: 750 },
-    { name: "Chicken Madfoon", img: "/chicken madfoon Mandi.png", price: 480 },
-    { name: "Chicken Majestic", img: "/chicken majestic.png", price: 350 },
-    { name: "Chicken Juicy Mandi", img: "/chicken juicy mandi.png", price: 400 },
-    { name: "Chicken Broasted Mandi", img: "/chicken broasted mandi.png", price: 420 },
-    { name: "Chicken Crispy Mandi", img: "/chicken crispy mandi.png", price: 430 },
-    { name: "Chicken Fry Mandi", img: "/chicken fry mandi.png", price: 390 },
-    { name: "Chicken Lollipop Mandi", img: "/chicken lollipop mandi.png", price: 440 },
-    { name: "Chilli Chicken", img: "/chilli chicken.png", price: 320 },
-    { name: "Fish Fry Mandi", img: "/fish fry mandi.png", price: 550 },
-    { name: "Mutton Fry Mandi", img: "/mutton fry mandi.png", price: 700 },
+    { name: "Mutton Juicy Mandi",       img: "/mutton juicy mandi.png",        price: 650, category: "Mutton"   },
+    { name: "Chicken Faham Mandi",       img: "/chicken faham Mandi.png",       price: 450, category: "Chicken"  },
+    { name: "Fish Platter Mandi",        img: "/fish platter mandi.png",        price: 750, category: "Seafood"  },
+    { name: "Chicken Madfoon",           img: "/chicken madfoon Mandi.png",     price: 480, category: "Chicken"  },
+    { name: "Chicken Majestic",          img: "/chicken majestic.png",          price: 350, category: "Chicken"  },
+    { name: "Chicken Juicy Mandi",       img: "/chicken juicy mandi.png",       price: 400, category: "Chicken"  },
+    { name: "Chicken Broasted Mandi",    img: "/chicken broasted mandi.png",    price: 420, category: "Chicken"  },
+    { name: "Chicken Crispy Mandi",      img: "/chicken crispy mandi.png",      price: 430, category: "Chicken"  },
+    { name: "Chicken Fry Mandi",         img: "/chicken fry mandi.png",         price: 390, category: "Chicken"  },
+    { name: "Chicken Lollipop Mandi",    img: "/chicken lollipop mandi.png",    price: 440, category: "Chicken"  },
+    { name: "Chilli Chicken",            img: "/chilli chicken.png",            price: 320, category: "Chicken"  },
+    { name: "Fish Fry Mandi",            img: "/fish fry mandi.png",            price: 550, category: "Seafood"  },
+    { name: "Mutton Fry Mandi",          img: "/mutton fry mandi.png",          price: 700, category: "Mutton"   },
   ];
 
   const galleryImages = [
@@ -269,7 +272,7 @@ export default function Home() {
       if (existing) return prev.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i);
       return [...prev, { name: item.name, price: item.price, qty: 1 }];
     });
-    setIsCartOpen(true);
+    // Drawer stays closed — user opens it manually via the Cart button
   };
 
   const increaseQty = (name: string) => {
@@ -549,41 +552,72 @@ export default function Home() {
 
       {/* ═══════════════ MENU GRID ═══════════════ */}
       <section className="w-full max-w-7xl mx-auto py-12 md:py-16 px-4 sm:px-6 md:px-12">
-        <h3 className="text-2xl sm:text-3xl font-serif text-[#DFB15B] text-center mb-8 sm:mb-12 border-b border-neutral-800 pb-4">The Royal Selection</h3>
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true, margin: "-100px" }} 
-          transition={{ duration: 0.8, ease: "easeOut" }}
+        <h3 className="text-2xl sm:text-3xl font-serif text-[#DFB15B] text-center mb-6 sm:mb-8 border-b border-neutral-800 pb-4">The Royal Selection</h3>
+
+        {/* ── Category Filter Bar ── */}
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 mb-8 sm:mb-12 scrollbar-none">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`shrink-0 px-5 sm:px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                activeCategory === cat
+                  ? 'bg-[#DFB15B] text-black shadow-[0_0_15px_rgba(223,177,91,0.4)]'
+                  : 'border border-neutral-700 text-neutral-400 hover:text-white hover:border-neutral-500'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Menu Grid with AnimatePresence ── */}
+        <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
           style={{ perspective: 1000 }}
         >
-          {menuItems.map((item, idx) => (
-            <TiltCard key={idx} className="relative bg-[#121212] border border-neutral-800 rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center shadow-xl hover:border-[#DFB15B] transition-colors duration-300 group overflow-hidden">
-              <div className="w-36 h-36 sm:w-48 sm:h-48 mb-4 sm:mb-6 flex items-center justify-center lg:group-hover:scale-105 transition-transform duration-500" style={{ transform: 'translateZ(20px)' }}>
-                <img src={item.img} alt={item.name} className="w-full h-full object-contain drop-shadow-xl" />
-              </div>
-              <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2" style={{ transform: 'translateZ(15px)' }}>{item.name}</h4>
-              <p className="text-[#DFB15B] font-bold text-lg sm:text-xl mb-4 sm:mb-6" style={{ transform: 'translateZ(12px)' }}>₹{item.price}</p>
-              {(() => {
-                const cartItem = cart.find(i => i.name === item.name);
-                return cartItem ? (
-                  <div className="flex items-center justify-between w-full bg-[#DFB15B]/10 border border-[#DFB15B]/50 rounded-full px-4 py-2.5">
-                    <button onClick={() => decreaseQty(item.name)} className="w-8 h-8 rounded-full bg-[#DFB15B] text-black font-bold text-lg flex items-center justify-center hover:bg-[#F3A833] transition-colors">−</button>
-                    <span className="text-[#DFB15B] font-bold text-base">{cartItem.qty} in cart</span>
-                    <button onClick={() => increaseQty(item.name)} className="w-8 h-8 rounded-full bg-[#DFB15B] text-black font-bold text-lg flex items-center justify-center hover:bg-[#F3A833] transition-colors">+</button>
-                  </div>
-                ) : (
-                  <MagneticButton
-                    onClick={() => addToCart(item)}
-                    className="w-full py-3 bg-neutral-800 text-white border border-[#DFB15B] font-bold text-sm sm:text-base rounded-lg hover:bg-[#DFB15B] hover:text-black transition-colors lg:cursor-none cursor-auto"
-                  >
-                    ADD TO ORDER
-                  </MagneticButton>
-                );
-              })()}
-            </TiltCard>
-          ))}
+          <AnimatePresence mode="popLayout">
+            {menuItems
+              .filter(item => activeCategory === 'All' || item.category === activeCategory)
+              .map(item => (
+                <motion.div
+                  key={item.name}
+                  layout
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.88 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
+                  <TiltCard className="relative bg-[#121212] border border-neutral-800 rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center shadow-xl hover:border-[#DFB15B] transition-colors duration-300 group overflow-hidden h-full">
+                    <div className="w-36 h-36 sm:w-48 sm:h-48 mb-4 sm:mb-6 flex items-center justify-center lg:group-hover:scale-105 transition-transform duration-500" style={{ transform: 'translateZ(20px)' }}>
+                      <img src={item.img} alt={item.name} className="w-full h-full object-contain drop-shadow-xl" />
+                    </div>
+                    <div className="flex-1 flex flex-col items-center">
+                      <span className="text-xs font-bold tracking-widest text-[#DFB15B]/50 uppercase mb-1">{item.category}</span>
+                      <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2" style={{ transform: 'translateZ(15px)' }}>{item.name}</h4>
+                      <p className="text-[#DFB15B] font-bold text-lg sm:text-xl mb-4 sm:mb-6" style={{ transform: 'translateZ(12px)' }}>₹{item.price}</p>
+                    </div>
+                    {(() => {
+                      const cartItem = cart.find(i => i.name === item.name);
+                      return cartItem ? (
+                        <div className="flex items-center justify-between w-full bg-[#DFB15B]/10 border border-[#DFB15B]/50 rounded-full px-4 py-2.5">
+                          <button onClick={() => decreaseQty(item.name)} className="w-8 h-8 rounded-full bg-[#DFB15B] text-black font-bold text-lg flex items-center justify-center hover:bg-[#F3A833] transition-colors">−</button>
+                          <span className="text-[#DFB15B] font-bold text-base">{cartItem.qty} in cart</span>
+                          <button onClick={() => increaseQty(item.name)} className="w-8 h-8 rounded-full bg-[#DFB15B] text-black font-bold text-lg flex items-center justify-center hover:bg-[#F3A833] transition-colors">+</button>
+                        </div>
+                      ) : (
+                        <MagneticButton
+                          onClick={() => addToCart(item)}
+                          className="w-full py-3 bg-neutral-800 text-white border border-[#DFB15B] font-bold text-sm sm:text-base rounded-lg hover:bg-[#DFB15B] hover:text-black transition-colors lg:cursor-none cursor-auto"
+                        >
+                          ADD TO ORDER
+                        </MagneticButton>
+                      );
+                    })()}
+                  </TiltCard>
+                </motion.div>
+              ))}
+          </AnimatePresence>
         </motion.div>
       </section>
 
