@@ -7,11 +7,11 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Canvas Scroll Preloader Config
-  const TOTAL_FRAMES = 240;
-  const FRAME_PREFIX = "ezgif-frame-";
-  const FRAME_PADDING = 3;
-  const FRAME_EXTENSION = ".jpg";
-  const FRAME_START_INDEX = 1;
+  const TOTAL_FRAMES = 191;
+  const FRAME_PREFIX = "frame_";
+  const FRAME_PADDING = 4;
+  const FRAME_EXTENSION = ".webp";
+  const FRAME_START_INDEX = 0;
 
   const [isLoading, setIsLoading] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -45,7 +45,7 @@ export default function Home() {
     for (let i = FRAME_START_INDEX; i < FRAME_START_INDEX + TOTAL_FRAMES; i++) {
       const img = new Image();
       const frameNum = String(i).padStart(FRAME_PADDING, '0');
-      img.src = `/logo-frames/${FRAME_PREFIX}${frameNum}${FRAME_EXTENSION}`;
+      img.src = `/webp_frames/${FRAME_PREFIX}${frameNum}${FRAME_EXTENSION}`;
       
       const idx = i - FRAME_START_INDEX;
       img.onload = () => {
