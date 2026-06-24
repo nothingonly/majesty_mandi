@@ -1,6 +1,102 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useScroll, useTransform, animate as fmAnimate } from 'framer-motion';
+
+// ── 3D TILT CARD COMPONENT ────────────────────────────────────────────────────
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const glareX = useMotionValue(50);
+  const glareY = useMotionValue(50);
+
+  const springRotateX = useSpring(rotateX, { damping: 20, stiffness: 200 });
+  const springRotateY = useSpring(rotateY, { damping: 20, stiffness: 200 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    rotateX.set(-dy * 10);
+    rotateY.set(dx * 10);
+    glareX.set((e.clientX - rect.left) / rect.width * 100);
+    glareY.set((e.clientY - rect.top) / rect.height * 100);
+  };
+
+  const handleMouseLeave = () => {
+    rotateX.set(0);
+    rotateY.set(0);
+    glareX.set(50);
+    glareY.set(50);
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX: springRotateX,
+        rotateY: springRotateY,
+        transformStyle: 'preserve-3d',
+      }}
+    >
+      {/* Glare overlay */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl pointer-events-none z-10"
+        style={{
+          background: useMotionValue(
+            `radial-gradient(circle at 50% 50%, rgba(223,177,91,0.12) 0%, transparent 70%)`
+          ),
+          backgroundImage: `radial-gradient(circle at ${glareX.get()}% ${glareY.get()}%, rgba(223,177,91,0.12) 0%, transparent 70%)`,
+        }}
+      />
+      {children}
+    </motion.div>
+  );
+}
+
+// ── MAGNETIC BUTTON COMPONENT ─────────────────────────────────────────────────
+function MagneticButton({ onClick, children, className }: { onClick: () => void; children: React.ReactNode; className?: string }) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { damping: 15, stiffness: 200 });
+  const springY = useSpring(y, { damping: 15, stiffness: 200 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    x.set((e.clientX - cx) * 0.35);
+    y.set((e.clientY - cy) * 0.35);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.button
+      ref={btnRef}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
+      className={className}
+    >
+      {children}
+    </motion.button>
+  );
+}
 
 export default function Home() {
   const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
@@ -103,6 +199,14 @@ export default function Home() {
   const cursorRingX = useSpring(cursorX, springConfig);
   const cursorRingY = useSpring(cursorY, springConfig);
 
+  // Parallax for Ambiance Gallery
+  const ambianceRef = useRef<HTMLElement | null>(null);
+  const { scrollYProgress: ambianceProgress } = useScroll({
+    target: ambianceRef,
+    offset: ['start end', 'end start'],
+  });
+  const parallaxY = useTransform(ambianceProgress, [0, 1], ['-15%', '15%']);
+
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX);
@@ -166,7 +270,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0B0B0C] text-white font-sans overflow-x-hidden relative cursor-none">
+    <main className="min-h-screen bg-[#0B0B0C] text-white font-sans overflow-clip relative cursor-none">
 
       {/* ═══════════════ CUSTOM AURA CURSOR ═══════════════ */}
       <motion.div
@@ -241,10 +345,10 @@ export default function Home() {
 
       {/* ═══════════════ SCROLL-BOUND CANVAS SECTION ═══════════════ */}
       <div ref={scrollContainerRef} className="relative w-full h-[300vh] bg-[#0B0B0C]">
-        <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center">
+        <div className="sticky top-0 w-full h-screen flex items-center justify-center pointer-events-none">
           <canvas
             ref={canvasRef}
-            className="w-full h-full object-cover mix-blend-screen"
+            className="w-full h-full object-contain mix-blend-screen"
           />
         </div>
       </div>
@@ -302,24 +406,28 @@ export default function Home() {
           viewport={{ once: true, margin: "-100px" }} 
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          style={{ perspective: 1000 }}
         >
           {menuItems.map((item, idx) => (
-            <div key={idx} className="bg-[#121212] border border-neutral-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl hover:border-[#DFB15B] transition-colors duration-300 group">
-              <div className="w-48 h-48 mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+            <TiltCard key={idx} className="relative bg-[#121212] border border-neutral-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl hover:border-[#DFB15B] transition-colors duration-300 group overflow-hidden">
+              <div className="w-48 h-48 mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-500" style={{ transform: 'translateZ(20px)' }}>
                 <img src={item.img} alt={item.name} className="max-w-[200px] max-h-[200px] object-contain drop-shadow-xl" />
               </div>
-              <h4 className="text-xl font-bold mb-2">{item.name}</h4>
-              <p className="text-[#DFB15B] font-bold text-xl mb-6">₹{item.price}</p>
-              <button onClick={() => addToCart(item)} className="w-full py-3 bg-neutral-800 text-white border border-[#DFB15B] font-bold rounded-lg hover:bg-[#DFB15B] hover:text-black transition-colors">
+              <h4 className="text-xl font-bold mb-2" style={{ transform: 'translateZ(15px)' }}>{item.name}</h4>
+              <p className="text-[#DFB15B] font-bold text-xl mb-6" style={{ transform: 'translateZ(12px)' }}>₹{item.price}</p>
+              <MagneticButton
+                onClick={() => addToCart(item)}
+                className="w-full py-3 bg-neutral-800 text-white border border-[#DFB15B] font-bold rounded-lg hover:bg-[#DFB15B] hover:text-black transition-colors cursor-none"
+              >
                 ADD TO ORDER
-              </button>
-            </div>
+              </MagneticButton>
+            </TiltCard>
           ))}
         </motion.div>
       </section>
 
       {/* ═══════════════ GALLERY GRID ═══════════════ */}
-      <section className="w-full bg-[#121212] py-16 px-4 border-t border-neutral-800">
+      <section ref={ambianceRef} className="w-full bg-[#121212] py-16 px-4 border-t border-neutral-800">
         <div className="max-w-7xl mx-auto">
           <h3 className="text-3xl font-serif text-[#DFB15B] text-center mb-12">The Royal Ambiance</h3>
           <motion.div 
@@ -331,7 +439,12 @@ export default function Home() {
           >
             {galleryImages.map((img, idx) => (
               <div key={idx} className="w-full h-64 rounded-xl overflow-hidden border border-neutral-800">
-                <img src={img} alt={`Ambiance ${idx}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                <motion.img
+                  src={img}
+                  alt={`Ambiance ${idx}`}
+                  className="w-full h-[130%] object-cover"
+                  style={{ y: parallaxY }}
+                />
               </div>
             ))}
           </motion.div>
