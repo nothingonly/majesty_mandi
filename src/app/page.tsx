@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useScroll, useTransform, animate as fmAnimate } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
+
 
 // ── 3D TILT CARD COMPONENT ────────────────────────────────────────────────────
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -50,10 +51,7 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
       <motion.div
         className="absolute inset-0 rounded-2xl pointer-events-none z-10"
         style={{
-          background: useMotionValue(
-            `radial-gradient(circle at 50% 50%, rgba(223,177,91,0.12) 0%, transparent 70%)`
-          ),
-          backgroundImage: `radial-gradient(circle at ${glareX.get()}% ${glareY.get()}%, rgba(223,177,91,0.12) 0%, transparent 70%)`,
+          backgroundImage: useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(223,177,91,0.14) 0%, transparent 70%)`,
         }}
       />
       {children}
