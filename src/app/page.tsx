@@ -6,104 +6,88 @@ export default function Home() {
   const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Canvas Preloader States and Refs
+  // Canvas Scroll Preloader Config
   const TOTAL_FRAMES = 240;
   const FRAME_PREFIX = "ezgif-frame-";
   const FRAME_PADDING = 3;
   const FRAME_EXTENSION = ".jpg";
   const FRAME_START_INDEX = 1;
 
-  const [isPreloaderMounted, setIsPreloaderMounted] = useState(true);
-  const [isPreloaderFading, setIsPreloaderFading] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const animationFrameId = useRef<number | null>(null);
+  const activeFrameRef = useRef(0);
 
   const heroImages = ["/chicken juicy mandi.png", "/mutton juicy mandi.png", "/fish platter mandi.png"];
   const [currentHeroIdx, setCurrentHeroIdx] = useState(0);
 
-  // Preload and play canvas animation
-  useEffect(() => {
-    let loadedCount = 0;
-    const images: HTMLImageElement[] = [];
+  // Draw frame on canvas
+  const drawFrame = (frameIdx: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = imagesRef.current[frameIdx];
+    if (img && img.complete) {
+      if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
+        canvas.width = img.naturalWidth || 1920;
+        canvas.height = img.naturalHeight || 1080;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+  };
 
-    // Preload all frames
+  // Preload frames and set timer
+  useEffect(() => {
+    const images: HTMLImageElement[] = [];
     for (let i = FRAME_START_INDEX; i < FRAME_START_INDEX + TOTAL_FRAMES; i++) {
       const img = new Image();
       const frameNum = String(i).padStart(FRAME_PADDING, '0');
       img.src = `/logo-frames/${FRAME_PREFIX}${frameNum}${FRAME_EXTENSION}`;
+      
+      const idx = i - FRAME_START_INDEX;
       img.onload = () => {
-        loadedCount++;
-        if (loadedCount === TOTAL_FRAMES) {
-          startAnimation();
-        }
-      };
-      img.onerror = () => {
-        loadedCount++;
-        if (loadedCount === TOTAL_FRAMES) {
-          startAnimation();
+        if (activeFrameRef.current === idx) {
+          drawFrame(idx);
         }
       };
       images.push(img);
     }
     imagesRef.current = images;
 
-    let currentFrame = 0;
-    let lastTime = 0;
-    const fpsInterval = 1000 / 24; // 24 FPS
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
 
-    function startAnimation() {
-      // Draw first frame immediately
-      drawFrame(0);
-      requestAnimationFrame(animate);
-    }
-
-    function drawFrame(frameIdx: number) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          const img = imagesRef.current[frameIdx];
-          if (img && img.complete) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          }
-        }
-      }
-    }
-
-    function animate(timestamp: number) {
-      if (!lastTime) lastTime = timestamp;
-      const elapsed = timestamp - lastTime;
-
-      if (elapsed > fpsInterval) {
-        lastTime = timestamp - (elapsed % fpsInterval);
-
-        drawFrame(currentFrame);
-        currentFrame++;
-
-        if (currentFrame >= TOTAL_FRAMES) {
-          // Reached final frame. Pause for 1 second, then fade out.
-          setTimeout(() => {
-            setIsPreloaderFading(true);
-            setTimeout(() => {
-              setIsPreloaderMounted(false);
-            }, 1000); // 1s fade-out duration
-          }, 1000); // 1s pause at the end
-          return; // Stop animation loop
-        }
-      }
-
-      animationFrameId.current = requestAnimationFrame(animate);
-    }
-
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
+    return () => clearTimeout(timer);
   }, []);
+
+  // Scroll logic for scrubbing the canvas
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const scrollRange = rect.height - window.innerHeight;
+      if (scrollRange <= 0) return;
+
+      let progress = -rect.top / scrollRange;
+      progress = Math.max(0, Math.min(1, progress));
+
+      const frameIndex = Math.floor(progress * (TOTAL_FRAMES - 1));
+      activeFrameRef.current = frameIndex;
+      drawFrame(frameIndex);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    // Draw initial frame
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isLoading]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -195,22 +179,15 @@ export default function Home() {
       />
 
       {/* ═══════════════ CINEMATIC PRELOADER (THE AURA) ═══════════════ */}
-      {isPreloaderMounted && (
-        <div 
-          className="fixed inset-0 bg-[#0B0B0C] z-[9999] flex flex-col items-center justify-center transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: isPreloaderFading ? 0 : 1, pointerEvents: isPreloaderFading ? 'none' : 'auto' }}
-        >
+      {isLoading && (
+        <div className="fixed inset-0 bg-[#0B0B0C] z-[999] flex items-center justify-center transition-opacity duration-700">
           <div className="flex flex-col items-center gap-6">
-            <canvas
-              ref={canvasRef}
-              width={500}
-              height={500}
-              className="w-64 h-64 md:w-[400px] md:h-[400px]"
-              style={{ mixBlendMode: 'screen' }}
+            <img
+              src="/logo.jpg"
+              alt="Majesty Mandi House Logo"
+              className="w-32 h-32 rounded-full object-cover shadow-[0_0_50px_10px_rgba(223,177,91,0.6)] animate-pulse border-2 border-[#DFB15B]"
             />
-            <span className="text-[#DFB15B] font-serif text-xl tracking-[0.3em] uppercase animate-pulse">
-              Majesty
-            </span>
+            <span className="text-[#DFB15B] font-serif text-xl tracking-[0.3em] uppercase animate-pulse">Majesty</span>
           </div>
         </div>
       )}
@@ -261,6 +238,16 @@ export default function Home() {
           CART <span className="bg-[#DFB15B] text-black px-2 py-0.5 rounded-full text-xs">{cart.reduce((sum, item) => sum + item.qty, 0)}</span>
         </button>
       </header>
+
+      {/* ═══════════════ SCROLL-BOUND CANVAS SECTION ═══════════════ */}
+      <div ref={scrollContainerRef} className="relative w-full h-[300vh] bg-[#0B0B0C]">
+        <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full object-cover mix-blend-screen"
+          />
+        </div>
+      </div>
 
       {/* ═══════════════ HERO SECTION ═══════════════ */}
       <section className="w-full py-20 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
